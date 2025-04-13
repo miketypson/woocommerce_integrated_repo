@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-blue: #0E294B; /* RAL 5005 - Signal Blue */
+  --secondary-blue: #1E5C97;
+  --light-blue: #D0E4F5;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-gray-900;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+  
+  h1 {
+    @apply text-4xl md:text-5xl;
+  }
+  
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+  
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+  
+  h4 {
+    @apply text-xl md:text-2xl;
+  }
+  
+  a {
+    @apply transition-colors;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#0E294B] text-white px-4 py-2 rounded hover:bg-[#1E5C97] transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-[#0E294B] border border-[#0E294B] px-4 py-2 rounded hover:bg-[#D0E4F5] transition-colors;
+  }
+  
+  .container {
+    @apply max-w-7xl mx-auto px-4;
+  }
+}
+
+/* Animation utilities */
+.animation-delay-500 {
+  animation-delay: 500ms;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1000ms;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2000ms;
+}
