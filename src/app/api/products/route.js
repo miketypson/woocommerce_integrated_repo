@@ -2,100 +2,40 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
+import { getWooCommerceApi, WOO_ENDPOINTS } from '@/utils/woocommerce/api';
 
 /**
  * GET handler for /api/products
- * Fetches all products from WooCommerce
+ * Fetches all products from WooCommerce (no more mock data).
  */
 export async function GET() {
   try {
-    console.log('API route /api/products called');
-    
-    // For testing purposes, return mock data
-    const mockProducts = [
-      {
-        id: 'pixel-7a-grapheneos',
-        name: 'Pixel 7a with GrapheneOS',
-        description: 'Privacy-focused smartphone with enhanced security features. Pre-installed with GrapheneOS for maximum privacy and security.',
-        short_description: 'Privacy-focused smartphone with GrapheneOS pre-installed',
-        price: '699.99',
-        regular_price: '749.99',
-        sale_price: '699.99',
-        stock_status: 'instock',
-        categories: [
-          {
-            id: 1,
-            name: 'Secure Phones',
-            slug: 'secure-phones'
-          }
-        ],
-        tags: [
-          {
-            id: 1,
-            name: 'open-source',
-            slug: 'open-source'
-          }
-        ],
-        images: [
-          {
-            id: 1,
-            src: '/placeholder-product.jpg',
-            alt: 'Pixel 7a with GrapheneOS'
-          }
-        ]
-      },
-      {
-        id: 'faraday-bag-large',
-        name: 'Large Faraday Bag',
-        description: 'Block all wireless signals with our premium Faraday bag. Perfect for phones, tablets, and small laptops. Military-grade signal blocking.',
-        short_description: 'Premium Faraday bag for complete signal blocking',
-        price: '49.99',
-        regular_price: '59.99',
-        sale_price: '49.99',
-        stock_status: 'instock',
-        categories: [
-          {
-            id: 2,
-            name: 'Faraday Bags',
-            slug: 'faraday-bags'
-          }
-        ],
-        images: [
-          {
-            id: 2,
-            src: '/placeholder-product.jpg',
-            alt: 'Large Faraday Bag'
-          }
-        ]
-      },
-      {
-        id: 'privacy-sim-10gb',
-        name: 'Privacy SIM Card - 10GB',
-        description: 'Anonymous prepaid SIM card with 10GB of data. No registration required, perfect for privacy-conscious users.',
-        short_description: 'Anonymous prepaid SIM with 10GB data',
-        price: '29.99',
-        regular_price: '29.99',
-        sale_price: null,
-        stock_status: 'instock',
-        categories: [
-          {
-            id: 3,
-            name: 'Prepaid Data SIMs',
-            slug: 'prepaid-data-sims'
-          }
-        ],
-        images: [
-          {
-            id: 3,
-            src: '/placeholder-product.jpg',
-            alt: 'Privacy SIM Card'
-          }
-        ]
-      }
-    ];
-    
-    console.log('Returning mock products');
-    return NextResponse.json(mockProducts);
+    console.log('API route /api/products called (woo data)');
+
+    // Retrieve WooCommerce base URL and authorization header
+    const { baseUrl, authHeader } = getWooCommerceApi();
+    // e.g., WOO_ENDPOINTS.PRODUCTS = '/wp-json/wc/v3/products'
+    const endpoint = baseUrl + WOO_ENDPOINTS.PRODUCTS;
+
+    // Fetch real product data from your WooCommerce store
+    const res = await fetch(endpoint, {
+      headers: { Authorization: authHeader },
+      // (Optional) cache: 'no-store' if you want always-fresh data
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('WooCommerce fetch error:', errorText);
+      return NextResponse.json(
+        { error: 'Failed to fetch products', details: errorText },
+        { status: res.status }
+      );
+    }
+
+    const products = await res.json();
+    console.log('Returning real WooCommerce products');
+    return NextResponse.json(products);
+
   } catch (error) {
     console.error('Error in /api/products route:', error);
     return NextResponse.json(

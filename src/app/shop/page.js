@@ -14,110 +14,25 @@ export default function ShopPage() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        console.log('Fetching products from API...');
-        
-        // For testing purposes, use mock data directly
-        const mockProducts = [
-          {
-            id: 'pixel-7a-grapheneos',
-            name: 'Pixel 7a with GrapheneOS',
-            description: 'Privacy-focused smartphone with enhanced security features. Pre-installed with GrapheneOS for maximum privacy and security.',
-            short_description: 'Privacy-focused smartphone with GrapheneOS pre-installed',
-            price: '699.99',
-            regular_price: '749.99',
-            sale_price: '699.99',
-            stock_status: 'instock',
-            categories: [
-              {
-                id: 1,
-                name: 'Secure Phones',
-                slug: 'secure-phones'
-              }
-            ],
-            tags: [
-              {
-                id: 1,
-                name: 'open-source',
-                slug: 'open-source'
-              }
-            ],
-            images: [
-              {
-                id: 1,
-                src: '/placeholder-product.jpg',
-                alt: 'Pixel 7a with GrapheneOS'
-              }
-            ]
-          },
-          {
-            id: 'faraday-bag-large',
-            name: 'Large Faraday Bag',
-            description: 'Block all wireless signals with our premium Faraday bag. Perfect for phones, tablets, and small laptops. Military-grade signal blocking.',
-            short_description: 'Premium Faraday bag for complete signal blocking',
-            price: '49.99',
-            regular_price: '59.99',
-            sale_price: '49.99',
-            stock_status: 'instock',
-            categories: [
-              {
-                id: 2,
-                name: 'Faraday Bags',
-                slug: 'faraday-bags'
-              }
-            ],
-            images: [
-              {
-                id: 2,
-                src: '/placeholder-product.jpg',
-                alt: 'Large Faraday Bag'
-              }
-            ]
-          },
-          {
-            id: 'privacy-sim-10gb',
-            name: 'Privacy SIM Card - 10GB',
-            description: 'Anonymous prepaid SIM card with 10GB of data. No registration required, perfect for privacy-conscious users.',
-            short_description: 'Anonymous prepaid SIM with 10GB data',
-            price: '29.99',
-            regular_price: '29.99',
-            sale_price: null,
-            stock_status: 'instock',
-            categories: [
-              {
-                id: 3,
-                name: 'Prepaid Data SIMs',
-                slug: 'prepaid-data-sims'
-              }
-            ],
-            images: [
-              {
-                id: 3,
-                src: '/placeholder-product.jpg',
-                alt: 'Privacy SIM Card'
-              }
-            ]
-          }
-        ];
-        
-        console.log('Using mock products data');
-        setProducts(mockProducts);
-        setLoading(false);
-        
-        // Still try to fetch from API in the background for debugging
-        try {
-          const response = await fetch('/api/products');
-          console.log('API response status:', response.status);
-          if (response.ok) {
-            const data = await response.json();
-            console.log('API data received:', data);
-          }
-        } catch (apiError) {
-          console.error('Background API fetch error:', apiError);
+        console.log('Fetching products from /api/products...');
+
+        // Fetch real product data from your /api/products route
+        const response = await fetch('/api/products', { cache: 'no-store' });
+        console.log('API response status:', response.status);
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Failed to fetch products');
         }
-        
-      } catch (error) {
-        console.error('Error in products fetch:', error);
-        setError(error.message);
+
+        const data = await response.json();
+        console.log('API data received:', data);
+        setProducts(data);
+        setLoading(false);
+
+      } catch (err) {
+        console.error('Error in products fetch:', err);
+        setError(err.message);
         setLoading(false);
       }
     };
@@ -127,7 +42,21 @@ export default function ShopPage() {
 
   const handleAddToCart = async (productId) => {
     try {
-      await addToCart(productId, 1);
+      // addToCart expects a product object, not just an ID.
+      // So either (a) pass the entire product to addToCart, OR
+      // (b) find it in products array by productId first. 
+      // For now, let's find the product in state:
+      const productToAdd = products.find((p) => p.id === productId);
+      if (!productToAdd) throw new Error('Product not found in state');
+
+      // Convert the price to a number
+      const normalizedProduct = {
+        ...productToAdd,
+        price: parseFloat(productToAdd.price),
+      };
+
+      // Call addToCart
+      await addToCart(normalizedProduct, 1);
     } catch (error) {
       console.error('Error adding to cart:', error);
     }
@@ -170,13 +99,14 @@ export default function ShopPage() {
             <ProductCard
               key={product.id}
               product={{
+                // We pass in the shape that ProductCard expects
                 id: product.id,
                 title: product.name,
                 category: product.categories?.[0]?.name || 'Product',
                 description: product.short_description || product.description,
                 price: parseFloat(product.price),
                 image: product.images?.[0]?.src || '/placeholder-product.jpg',
-                privacyRating: 5, // Default value, could be customized
+                privacyRating: 5, // or any custom field
                 isOpenSource: product.tags?.some(tag => tag.name === 'open-source') || false,
                 openSourceLink: '',
                 inStock: product.stock_status === 'instock'

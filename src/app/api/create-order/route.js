@@ -2,38 +2,61 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
+import { getWooCommerceApi, WOO_ENDPOINTS } from '@/utils/woocommerce/api';
 
 /**
  * POST handler for /api/create-order
- * Creates a new order in WooCommerce
+ * Creates a new order in WooCommerce (no more mock data).
  */
 export async function POST(request) {
   try {
+    // Parse the incoming JSON (containing cart, billing, shipping, etc.)
     const data = await request.json();
-    
-    // For testing purposes, return mock data
-    const mockOrder = {
-      id: Math.floor(Math.random() * 10000),
-      number: `PS-${Math.floor(Math.random() * 10000)}`,
-      status: 'processing',
-      date_created: new Date().toISOString(),
-      total: data.cart.total,
-      line_items: data.cart.items.map(item => ({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        total: item.totals.line_total
-      })),
-      billing: data.billing,
-      shipping: data.shipping,
-      payment_method: data.payment_method,
-      payment_method_title: data.payment_method === 'bacs' ? 'Direct Bank Transfer' : 
-                            data.payment_method === 'cheque' ? 'Check Payment' : 
-                            'Credit Card'
+
+    // Retrieve WooCommerce base URL & Basic Auth header
+    const { baseUrl, authHeader } = getWooCommerceApi();
+    const ordersEndpoint = baseUrl + WOO_ENDPOINTS.ORDERS; 
+    // e.g., baseUrl + '/wp-json/wc/v3/orders'
+
+    // Transform cart items to the shape WooCommerce expects
+    const lineItems = data.cart.items.map((item) => ({
+      product_id: item.id,   // must be the actual WooCommerce product ID
+      quantity: item.quantity,
+    }));
+
+    // Construct the WooCommerce order payload
+    const orderPayload = {
+      payment_method: data.payment_method || 'cod',
+      payment_method_title: 'Cash on Delivery',
+      set_paid: false,               // Typically false unless you handle payment externally
+      billing: data.billing,         // e.g. { first_name, last_name, address_1, ... }
+      shipping: data.shipping,       // e.g. { first_name, last_name, address_1, ... }
+      line_items: lineItems,
     };
-    
-    return NextResponse.json(mockOrder);
+
+    // Send POST request to create the order in WooCommerce
+    const res = await fetch(ordersEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: authHeader,
+      },
+      body: JSON.stringify(orderPayload),
+    });
+
+    if (!res.ok) {
+      // If WooCommerce responds with an error, read it and return
+      const errorText = await res.text();
+      return NextResponse.json(
+        { error: 'Failed to create order', details: errorText },
+        { status: 400 }
+      );
+    }
+
+    // Parse the created order from WooCommerce
+    const createdOrder = await res.json();
+    return NextResponse.json(createdOrder);
+
   } catch (error) {
     console.error('Error creating order:', error);
     return NextResponse.json(

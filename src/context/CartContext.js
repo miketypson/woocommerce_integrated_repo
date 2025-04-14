@@ -120,39 +120,17 @@ export function CartProvider({ children }) {
 
   // Load cart from localStorage on initial render
   useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        // First try to get cart from API
-        const response = await fetch('/api/cart');
-        if (response.ok) {
-          const cartData = await response.json();
-          
-          // Format cart data for our state
-          const formattedCart = {
-            items: cartData.items || [],
-            total: cartData.totals?.total || 0,
-            totalItems: cartData.items?.reduce((sum, item) => sum + item.quantity, 0) || 0,
-          };
-          
-          dispatch({ type: 'SET_CART', payload: formattedCart });
-        } else {
-          // If API fails, try to get from localStorage
-          const savedCart = localStorage.getItem('cart');
-          if (savedCart) {
-            dispatch({ type: 'INITIALIZE', payload: JSON.parse(savedCart) });
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching cart:', error);
-        // Try to get from localStorage as fallback
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) {
-          dispatch({ type: 'INITIALIZE', payload: JSON.parse(savedCart) });
-        }
+    try {
+      const savedCart = localStorage.getItem('cart');
+      if (savedCart) {
+        dispatch({
+          type: 'INITIALIZE',
+          payload: JSON.parse(savedCart)
+        });
       }
-    };
-
-    fetchCart();
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error);
+    }
   }, []);
 
   // Save cart to localStorage whenever it changes
@@ -160,188 +138,109 @@ export function CartProvider({ children }) {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Add item to cart
-  const addToCart = async (productId, quantity = 1) => {
+  // Add item to cart (local only)
+  const addToCart = (product, quantity = 1) => {
     dispatch({ type: 'ADD_TO_CART_REQUEST' });
-    
+
     try {
-      // For testing purposes, simulate adding to cart locally
-      console.log(`Adding product ${productId} to cart with quantity ${quantity}`);
-      
-      // Find the product in our mock data
-      const mockProducts = [
-        {
-          id: 'pixel-7a-grapheneos',
-          name: 'Pixel 7a with GrapheneOS',
-          price: '699.99',
-          images: [{ src: '/placeholder-product.jpg' }]
-        },
-        {
-          id: 'faraday-bag-large',
-          name: 'Large Faraday Bag',
-          price: '49.99',
-          images: [{ src: '/placeholder-product.jpg' }]
-        },
-        {
-          id: 'privacy-sim-10gb',
-          name: 'Privacy SIM Card - 10GB',
-          price: '29.99',
-          images: [{ src: '/placeholder-product.jpg' }]
-        }
-      ];
-      
-      const product = mockProducts.find(p => p.id === productId);
-      
-      if (!product) {
-        throw new Error('Product not found');
-      }
-      
-      // Check if product already exists in cart
-      const existingItemIndex = cart.items.findIndex(item => item.id === productId);
-      
+      // Check if product already in cart
+      const existingIndex = cart.items.findIndex(item => item.id === product.id);
       let updatedItems;
-      if (existingItemIndex >= 0) {
-        // Update quantity if product already in cart
+      
+      if (existingIndex >= 0) {
+        // Update quantity
         updatedItems = [...cart.items];
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + quantity
+        updatedItems[existingIndex] = {
+          ...updatedItems[existingIndex],
+          quantity: updatedItems[existingIndex].quantity + quantity
         };
       } else {
-        // Add new item to cart
         const newItem = {
           id: product.id,
           key: `item_${product.id}`,
           name: product.name,
-          price: product.price,
-          quantity: quantity,
-          images: product.images,
-          totals: {
-            line_total: `$${(parseFloat(product.price) * quantity).toFixed(2)}`
-          }
+          price: parseFloat(product.price),
+          quantity,
+          images: product.images || [],
         };
         updatedItems = [...cart.items, newItem];
       }
-      
+
       // Calculate new totals
       const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
-      const total = `$${updatedItems.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0).toFixed(2)}`;
-      
-      const formattedCart = {
-        items: updatedItems,
-        total,
-        totalItems,
-      };
-      
-      dispatch({ type: 'ADD_TO_CART_SUCCESS', payload: formattedCart });
-      
-      // Still try API in background for debugging
-      try {
-        const response = await fetch('/api/cart', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            product_id: productId,
-            quantity,
-          }),
-        });
-        
-        console.log('API response status:', response.status);
-        if (response.ok) {
-          const cartData = await response.json();
-          console.log('API cart data:', cartData);
+      const totalPrice = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+      dispatch({
+        type: 'ADD_TO_CART_SUCCESS',
+        payload: {
+          items: updatedItems,
+          total: parseFloat(totalPrice.toFixed(2)),
+          totalItems
         }
-      } catch (apiError) {
-        console.error('Background API call error:', apiError);
-      }
+      });
     } catch (error) {
       console.error('Error adding to cart:', error);
       dispatch({ type: 'ADD_TO_CART_ERROR', payload: error.message });
     }
   };
 
-  // Update cart item
-  const updateCartItem = async (key, quantity) => {
+  // Update cart item quantity (local only)
+  const updateCartItem = (productId, newQuantity) => {
     dispatch({ type: 'UPDATE_CART_ITEM_REQUEST' });
-    
+
     try {
-      const response = await fetch(`/api/cart/${key}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          quantity,
-        }),
+      // Find item in cart
+      const updatedItems = cart.items.map(item => {
+        if (item.id === productId) {
+          return { ...item, quantity: newQuantity };
+        }
+        return item;
+      }).filter(item => item.quantity > 0);
+
+      const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
+      const totalPrice = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+      dispatch({
+        type: 'UPDATE_CART_ITEM_SUCCESS',
+        payload: {
+          items: updatedItems,
+          total: parseFloat(totalPrice.toFixed(2)),
+          totalItems
+        }
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update cart item');
-      }
-      
-      const cartData = await response.json();
-      
-      // Format cart data for our state
-      const formattedCart = {
-        items: cartData.items || [],
-        total: cartData.totals?.total || 0,
-        totalItems: cartData.items?.reduce((sum, item) => sum + item.quantity, 0) || 0,
-      };
-      
-      dispatch({ type: 'UPDATE_CART_ITEM_SUCCESS', payload: formattedCart });
     } catch (error) {
       console.error('Error updating cart item:', error);
       dispatch({ type: 'UPDATE_CART_ITEM_ERROR', payload: error.message });
     }
   };
 
-  // Remove cart item
-  const removeCartItem = async (key) => {
+  // Remove cart item (local only)
+  const removeCartItem = (productId) => {
     dispatch({ type: 'REMOVE_CART_ITEM_REQUEST' });
     
     try {
-      const response = await fetch(`/api/cart/${key}`, {
-        method: 'DELETE',
+      const updatedItems = cart.items.filter(item => item.id !== productId);
+      const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
+      const totalPrice = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+      dispatch({
+        type: 'REMOVE_CART_ITEM_SUCCESS',
+        payload: {
+          items: updatedItems,
+          total: parseFloat(totalPrice.toFixed(2)),
+          totalItems
+        }
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to remove cart item');
-      }
-      
-      const cartData = await response.json();
-      
-      // Format cart data for our state
-      const formattedCart = {
-        items: cartData.items || [],
-        total: cartData.totals?.total || 0,
-        totalItems: cartData.items?.reduce((sum, item) => sum + item.quantity, 0) || 0,
-      };
-      
-      dispatch({ type: 'REMOVE_CART_ITEM_SUCCESS', payload: formattedCart });
     } catch (error) {
       console.error('Error removing cart item:', error);
       dispatch({ type: 'REMOVE_CART_ITEM_ERROR', payload: error.message });
     }
   };
 
-  // Clear cart
-  const clearCart = async () => {
+  // Clear cart (local only)
+  const clearCart = () => {
     dispatch({ type: 'CLEAR_CART_REQUEST' });
-    
     try {
-      const response = await fetch('/api/cart/clear', {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to clear cart');
-      }
-      
       dispatch({ type: 'CLEAR_CART_SUCCESS' });
     } catch (error) {
       console.error('Error clearing cart:', error);
@@ -351,10 +250,10 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider value={{ 
-      cart, 
-      addToCart, 
-      updateCartItem, 
-      removeCartItem, 
+      cart,
+      addToCart,
+      updateCartItem,
+      removeCartItem,
       clearCart 
     }}>
       {children}
@@ -365,7 +264,7 @@ export function CartProvider({ children }) {
 // Custom hook to use cart context
 export function useCart() {
   const context = useContext(CartContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useCart must be used within a CartProvider');
   }
   return context;
