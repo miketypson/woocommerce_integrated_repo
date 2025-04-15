@@ -1,12 +1,48 @@
 'use client';
 
-import { useState } from 'react';
-import { useCart } from '@/context/CartContext';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CreditCard, Check, AlertCircle } from 'lucide-react';
 
 export default function CheckoutPage() {
-  const { cart } = useCart();
+  // Direct cart implementation - matching the ProductCard and cart page
+  const CART_KEY = 'direct_cart_v1';
+  const [cart, setCart] = useState({ items: [], count: 0 });
+  
+  // Get cart from localStorage
+  function getDirectCart() {
+    try {
+      const cartData = localStorage.getItem(CART_KEY);
+      if (cartData) {
+        return JSON.parse(cartData);
+      }
+    } catch (e) {
+      console.error('Error getting cart:', e);
+    }
+    return { items: [], count: 0 };
+  }
+  
+  // Load cart on component mount
+  useEffect(() => {
+    const directCart = getDirectCart();
+    console.log('Checkout: Loading direct cart data:', directCart);
+    setCart(directCart);
+    
+    // Set up event listener for cart updates
+    const handleCartUpdate = () => {
+      const updatedCart = getDirectCart();
+      console.log('Checkout: Cart updated:', updatedCart);
+      setCart(updatedCart);
+    };
+    
+    window.addEventListener('directCartUpdated', handleCartUpdate);
+    document.addEventListener('directCartUpdated', handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('directCartUpdated', handleCartUpdate);
+      document.removeEventListener('directCartUpdated', handleCartUpdate);
+    };
+  }, []);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -127,11 +163,11 @@ export default function CheckoutPage() {
               phone: formData.phone,
               company: formData.company,
             },
-        line_items: cart.items.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity,
-        })),
+        // Pass the cart object directly for the API to process
+        cart: cart,
       };
+      
+      console.log('Submitting order with cart:', cart);
       
       // Create order
       const response = await fetch('/api/create-order', {
@@ -164,7 +200,7 @@ export default function CheckoutPage() {
   };
 
   // If cart is loading
-  if (cart.isLoading) {
+  if (!cart) {
     return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-[#0E294B] mb-8">Checkout</h1>
