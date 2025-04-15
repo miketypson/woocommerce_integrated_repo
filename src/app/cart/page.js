@@ -263,21 +263,6 @@ export default function CartPage() {
           <h2 className="text-xl font-semibold mb-2">Your cart is empty</h2>
           <p className="text-gray-600 mb-6">Looks like you haven't added any products to your cart yet.</p>
           
-          {/* Debugging section */}
-          <div className="mt-8 p-4 border border-gray-300 rounded bg-gray-50 text-left overflow-auto max-h-80">
-            <h3 className="text-md font-semibold mb-2">Debug: Direct Cart Data (direct_cart_v1)</h3>
-            <pre className="text-xs whitespace-pre-wrap break-all">
-              {(() => {
-                try {
-                  const data = localStorage.getItem('direct_cart_v1');
-                  return data || 'No direct cart data found';
-                } catch (e) {
-                  return 'Error reading localStorage: ' + e.message;
-                }
-              })()}
-            </pre>
-          </div>
-          
           <div className="mt-6">
             <Link href="/shop">
               <button className="bg-[#0E294B] text-white px-6 py-3 rounded-md hover:bg-[#1E5C97] transition-colors inline-flex items-center">
