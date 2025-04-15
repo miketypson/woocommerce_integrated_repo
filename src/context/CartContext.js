@@ -13,11 +13,14 @@ const initialState = {
 
 // Cart reducer function
 function cartReducer(state, action) {
+  console.log('Cart reducer called with action:', action.type, action.payload);
+  
   switch (action.type) {
     case 'INITIALIZE':
       return {
         ...state,
         ...action.payload,
+        isLoading: false,
       };
     case 'SET_CART':
       return {
@@ -121,54 +124,122 @@ export function CartProvider({ children }) {
   // Load cart from localStorage on initial render
   useEffect(() => {
     try {
+      console.log('CartContext initializing - checking localStorage');
       const savedCart = localStorage.getItem('cart');
+      
       if (savedCart) {
-        dispatch({
-          type: 'INITIALIZE',
-          payload: JSON.parse(savedCart)
-        });
+        console.log('Found saved cart in localStorage:', savedCart);
+        const parsedCart = JSON.parse(savedCart);
+        
+        // Make sure we have valid cart data with required properties
+        if (parsedCart && Array.isArray(parsedCart.items)) {
+          console.log('Initializing cart with items:', parsedCart.items);
+          dispatch({
+            type: 'INITIALIZE',
+            payload: parsedCart
+          });
+        } else {
+          console.warn('Invalid cart data in localStorage, using default empty cart');
+          // Reset to empty cart if data is invalid
+          localStorage.setItem('cart', JSON.stringify(initialState));
+        }
+      } else {
+        console.log('No saved cart found in localStorage');
       }
     } catch (error) {
       console.error('Error loading cart from localStorage:', error);
+      // Reset to empty cart on error
+      localStorage.setItem('cart', JSON.stringify(initialState));
     }
+    
+    // Dispatch a custom event to notify the navbar that cart has been initialized
+    window.dispatchEvent(new CustomEvent('cartUpdated'));
   }, []);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
+    console.log('Cart state changed, updating localStorage:', cart);
     localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Dispatch a custom event for other components to detect cart changes
+    window.dispatchEvent(new CustomEvent('cartUpdated'));
   }, [cart]);
 
   // Add item to cart (local only)
   const addToCart = (product, quantity = 1) => {
+    console.log('Adding to cart:', product, 'quantity:', quantity);
     dispatch({ type: 'ADD_TO_CART_REQUEST' });
 
     try {
-      // Check if product already in cart
-      const existingIndex = cart.items.findIndex(item => item.id === product.id);
+      // Ensure product.price is a number
+      if (typeof product.price === 'string') {
+        product.price = parseFloat(product.price) || 0;
+      }
+
+      // Create a unique key for the product+addons combination if addon info exists
+      const hasAddons = product.selected_addons && 
+                       Object.values(product.selected_addons).some(options => options && options.length > 0);
+      
+      // Create a unique item ID that includes addon selections
+      const itemUniqueId = hasAddons ? 
+        `${product.id}_${JSON.stringify(product.selected_addons)}` : 
+        `${product.id}`;
+      
+      // Calculate the total price including any add-ons
+      const itemBasePrice = parseFloat(product.price) || 0;
+      const itemAddonPrice = parseFloat(product.addon_price) || 0;
+      const itemTotalPrice = itemBasePrice + itemAddonPrice;
+      
+      console.log('Cart before update:', cart.items);
+      console.log('Looking for item with uniqueId:', itemUniqueId);
+      
+      // Check if this exact product + addon combination already exists in cart
+      const existingIndex = cart.items.findIndex(item => 
+        hasAddons ? 
+          item.uniqueId === itemUniqueId :
+          item.id == product.id && !item.hasAddons
+      );
+      
+      console.log('Existing item index:', existingIndex);
+      
       let updatedItems;
       
       if (existingIndex >= 0) {
-        // Update quantity
+        // Update quantity of existing item
         updatedItems = [...cart.items];
         updatedItems[existingIndex] = {
           ...updatedItems[existingIndex],
           quantity: updatedItems[existingIndex].quantity + quantity
         };
+        console.log('Updated existing item:', updatedItems[existingIndex]);
       } else {
+        // Create a new cart item with addon information
         const newItem = {
           id: product.id,
-          key: `item_${product.id}`,
+          uniqueId: itemUniqueId,
+          key: `item_${product.id}${hasAddons ? '_addons' : ''}`,
           name: product.name,
-          price: parseFloat(product.price),
+          price: itemTotalPrice,
+          base_price: itemBasePrice,
+          addon_price: itemAddonPrice,
           quantity,
           images: product.images || [],
+          hasAddons,
+          selected_addons: product.selected_addons || {}
         };
         updatedItems = [...cart.items, newItem];
+        console.log('Added new item to cart:', newItem);
       }
 
       // Calculate new totals
       const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
       const totalPrice = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+      console.log('New cart state:', {
+        items: updatedItems,
+        total: parseFloat(totalPrice.toFixed(2)),
+        totalItems
+      });
 
       dispatch({
         type: 'ADD_TO_CART_SUCCESS',
@@ -178,6 +249,20 @@ export function CartProvider({ children }) {
           totalItems
         }
       });
+      
+      // Save to localStorage directly as well for redundancy
+      try {
+        const cartToSave = {
+          items: updatedItems,
+          total: parseFloat(totalPrice.toFixed(2)),
+          totalItems,
+          isLoading: false,
+          error: null
+        };
+        localStorage.setItem('cart', JSON.stringify(cartToSave));
+      } catch (storageError) {
+        console.error('Error saving to localStorage:', storageError);
+      }
     } catch (error) {
       console.error('Error adding to cart:', error);
       dispatch({ type: 'ADD_TO_CART_ERROR', payload: error.message });
@@ -185,13 +270,15 @@ export function CartProvider({ children }) {
   };
 
   // Update cart item quantity (local only)
-  const updateCartItem = (productId, newQuantity) => {
+  const updateCartItem = (itemKey, newQuantity) => {
+    console.log('Updating cart item with key:', itemKey, 'to quantity:', newQuantity);
     dispatch({ type: 'UPDATE_CART_ITEM_REQUEST' });
 
     try {
-      // Find item in cart
+      // Find item in cart by key or uniqueId
       const updatedItems = cart.items.map(item => {
-        if (item.id === productId) {
+        if (item.key === itemKey || item.uniqueId === itemKey) {
+          console.log('Found item to update:', item);
           return { ...item, quantity: newQuantity };
         }
         return item;
@@ -200,14 +287,30 @@ export function CartProvider({ children }) {
       const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
       const totalPrice = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+      const newCartState = {
+        items: updatedItems,
+        total: parseFloat(totalPrice.toFixed(2)),
+        totalItems
+      };
+      
+      console.log('New cart state after update:', newCartState);
+
       dispatch({
         type: 'UPDATE_CART_ITEM_SUCCESS',
-        payload: {
-          items: updatedItems,
-          total: parseFloat(totalPrice.toFixed(2)),
-          totalItems
-        }
+        payload: newCartState
       });
+      
+      // Save to localStorage
+      try {
+        const cartToSave = {
+          ...newCartState,
+          isLoading: false,
+          error: null
+        };
+        localStorage.setItem('cart', JSON.stringify(cartToSave));
+      } catch (storageError) {
+        console.error('Error saving to localStorage:', storageError);
+      }
     } catch (error) {
       console.error('Error updating cart item:', error);
       dispatch({ type: 'UPDATE_CART_ITEM_ERROR', payload: error.message });
@@ -215,33 +318,109 @@ export function CartProvider({ children }) {
   };
 
   // Remove cart item (local only)
-  const removeCartItem = (productId) => {
+  const removeCartItem = (itemKey) => {
+    console.log('Removing cart item with key:', itemKey);
     dispatch({ type: 'REMOVE_CART_ITEM_REQUEST' });
     
     try {
-      const updatedItems = cart.items.filter(item => item.id !== productId);
+      // Remove item with matching key or uniqueId
+      const updatedItems = cart.items.filter(item => 
+        item.key !== itemKey && item.uniqueId !== itemKey
+      );
+      
+      console.log('Cart items after removal:', updatedItems);
+
+      // Calculate new totals
       const totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
       const totalPrice = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+      const newCartState = {
+        items: updatedItems,
+        total: parseFloat(totalPrice.toFixed(2)),
+        totalItems
+      };
+      
+      console.log('New cart state after removal:', newCartState);
+
       dispatch({
         type: 'REMOVE_CART_ITEM_SUCCESS',
-        payload: {
-          items: updatedItems,
-          total: parseFloat(totalPrice.toFixed(2)),
-          totalItems
-        }
+        payload: newCartState
       });
+      
+      // Save to localStorage
+      try {
+        const cartToSave = {
+          ...newCartState,
+          isLoading: false,
+          error: null
+        };
+        localStorage.setItem('cart', JSON.stringify(cartToSave));
+      } catch (storageError) {
+        console.error('Error saving to localStorage:', storageError);
+      }
     } catch (error) {
       console.error('Error removing cart item:', error);
       dispatch({ type: 'REMOVE_CART_ITEM_ERROR', payload: error.message });
     }
   };
 
+  // Synchronize cart state with localStorage
+  const syncCartWithLocalStorage = () => {
+    try {
+      console.log('Synchronizing cart with localStorage');
+      const rawCartData = localStorage.getItem('cart');
+      
+      if (rawCartData) {
+        const parsedCart = JSON.parse(rawCartData);
+        if (parsedCart && Array.isArray(parsedCart.items)) {
+          console.log('Got valid cart data from localStorage:', parsedCart);
+          
+          // Check if cart state differs from localStorage
+          const cartItemIds = cart.items.map(item => item.uniqueId || item.id).sort();
+          const localItemIds = parsedCart.items.map(item => item.uniqueId || item.id).sort();
+          
+          const needsSync = 
+            cartItemIds.length !== localItemIds.length || 
+            cartItemIds.some((id, i) => id !== localItemIds[i]) ||
+            cart.totalItems !== parsedCart.totalItems;
+          
+          if (needsSync) {
+            console.log('Cart state differs from localStorage, syncing...');
+            dispatch({
+              type: 'INITIALIZE',
+              payload: parsedCart
+            });
+            return true; // Sync happened
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error syncing cart with localStorage:', error);
+    }
+    return false; // No sync needed or sync failed
+  };
+
   // Clear cart (local only)
   const clearCart = () => {
+    console.log('Clearing cart');
     dispatch({ type: 'CLEAR_CART_REQUEST' });
+    
     try {
       dispatch({ type: 'CLEAR_CART_SUCCESS' });
+      
+      // Clear localStorage cart data too
+      try {
+        const emptyCart = {
+          items: [],
+          total: 0,
+          totalItems: 0,
+          isLoading: false,
+          error: null
+        };
+        localStorage.setItem('cart', JSON.stringify(emptyCart));
+      } catch (storageError) {
+        console.error('Error clearing localStorage cart:', storageError);
+      }
     } catch (error) {
       console.error('Error clearing cart:', error);
       dispatch({ type: 'CLEAR_CART_ERROR', payload: error.message });
@@ -254,7 +433,8 @@ export function CartProvider({ children }) {
       addToCart,
       updateCartItem,
       removeCartItem,
-      clearCart 
+      clearCart,
+      syncCartWithLocalStorage // Expose sync function to components
     }}>
       {children}
     </CartContext.Provider>

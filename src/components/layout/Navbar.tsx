@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, ShoppingCart, Search, ChevronDown, Shield, Code } from 'lucide-react';
+
+// No imports - direct implementation
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -15,6 +18,64 @@ const Navbar = () => {
   const toggleShopDropdown = () => {
     setIsShopDropdownOpen(!isShopDropdownOpen);
   };
+  
+  // Direct cart implementation
+  useEffect(() => {
+    // Constants
+    const CART_KEY = 'direct_cart_v1';
+    
+    // Load cart data directly from localStorage
+    const loadCartData = () => {
+      try {
+        const cartData = localStorage.getItem(CART_KEY);
+        
+        if (cartData) {
+          try {
+            const cart = JSON.parse(cartData);
+            console.log('Navbar: Cart count =', cart.count);
+            setCartItemCount(cart.count || 0);
+          } catch (e) {
+            console.error('Navbar: Error parsing cart data:', e);
+            setCartItemCount(0);
+          }
+        } else {
+          console.log('Navbar: No cart data found');
+          setCartItemCount(0);
+        }
+      } catch (error) {
+        console.error('Navbar: Error reading from localStorage:', error);
+        setCartItemCount(0);
+      }
+    };
+    
+    // Initial load
+    loadCartData();
+    console.log('Navbar: Initial cart load complete');
+    
+    // Listen for direct cart update events
+    const handleCartUpdate = (event: Event) => {
+      console.log('Navbar: Direct cart update event detected', event);
+      loadCartData();
+    };
+    
+    // Add our event listeners
+    document.addEventListener('directCartUpdated', handleCartUpdate);
+    window.addEventListener('directCartUpdated', handleCartUpdate);
+    
+    // Regular polling as a fallback
+    const interval = setInterval(() => {
+      loadCartData();
+    }, 1000);
+    
+    // Force an immediate check after a short delay
+    setTimeout(loadCartData, 100);
+    
+    return () => {
+      window.removeEventListener('directCartUpdated', handleCartUpdate);
+      document.removeEventListener('directCartUpdated', handleCartUpdate);
+      clearInterval(interval);
+    };
+  }, []);
   
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -48,15 +109,6 @@ const Navbar = () => {
               {/* Shop Dropdown */}
               <div className={`absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 transition-all duration-200 ${isShopDropdownOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
                 <div className="py-1" role="menu" aria-orientation="vertical">
-                  <Link href="/shop/product/pixel-7a-grapheneos" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Secure Phones
-                  </Link>
-                  <Link href="/shop/product/premium-faraday-bag" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Faraday Bags
-                  </Link>
-                  <Link href="/shop/product/prepaid-sim-150" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Prepaid Data SIMs
-                  </Link>
                   <Link href="/shop" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     All Products
                   </Link>
@@ -89,9 +141,11 @@ const Navbar = () => {
             
             <Link href="/cart" className="text-gray-700 hover:text-[#0E294B] relative">
               <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-2 -right-2 bg-[#0E294B] text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                0
-              </span>
+              {cartItemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#0E294B] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                  {cartItemCount}
+                </span>
+              )}
             </Link>
           </div>
           
@@ -164,9 +218,11 @@ const Navbar = () => {
             
             <Link href="/cart" className="text-gray-700 hover:text-[#0E294B] relative p-2">
               <ShoppingCart className="h-6 w-6" />
-              <span className="absolute top-0 right-0 bg-[#0E294B] text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                0
-              </span>
+              {cartItemCount > 0 && (
+                <span className="absolute top-0 right-0 bg-[#0E294B] text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  {cartItemCount}
+                </span>
+              )}
             </Link>
           </div>
         </div>
