@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Cart Implementation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .product {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .product-image {
+            width: 80px;
+            height: 80px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        .product-details {
+            flex: 1;
+        }
+        button {
+            background: #0E294B;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1E5C97;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Direct Cart Implementation</h1>
+    <p>This is a standalone cart implementation with no frameworks or utilities - just pure JS and localStorage.</p>
+    
+    <div class="card">
+        <h2>Test Products</h2>
+        <div id="products">
+            <div class="product">
+                <div class="product-image">📱</div>
+                <div class="product-details">
+                    <h3>Test Phone</h3>
+                    <p>A simple test product</p>
+                    <p>$299.99</p>
+                    <button onclick="addToCart({id: 'phone1', name: 'Test Phone', price: 299.99, image: '📱'})">Add to Cart</button>
+                </div>
+            </div>
+            <div class="product">
+                <div class="product-image">💻</div>
+                <div class="product-details">
+                    <h3>Test Laptop</h3>
+                    <p>Another test product</p>
+                    <p>$999.99</p>
+                    <button onclick="addToCart({id: 'laptop1', name: 'Test Laptop', price: 999.99, image: '💻'})">Add to Cart</button>
+                </div>
+            </div>
+            <div class="product">
+                <div class="product-image">🎧</div>
+                <div class="product-details">
+                    <h3>Test Headphones</h3>
+                    <p>A third test product</p>
+                    <p>$149.99</p>
+                    <button onclick="addToCart({id: 'headphones1', name: 'Test Headphones', price: 149.99, image: '🎧'})">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Cart</h2>
+        <div id="cart">Loading cart...</div>
+        <button onclick="clearCart()">Clear Cart</button>
+    </div>
+    
+    <div class="card">
+        <h2>Debug</h2>
+        <button onclick="testLocalStorage()">Test localStorage</button>
+        <button onclick="showRawCart()">Show Raw Cart Data</button>
+        <pre id="debug">Debug info will appear here</pre>
+    </div>
+    
+    <script>
+        // Constants
+        const CART_KEY = 'direct_cart_v1';
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCart();
+            testLocalStorage();
+        });
+        
+        // Test localStorage availability
+        function testLocalStorage() {
+            const debug = document.getElementById('debug');
+            
+            try {
+                const testKey = 'test_localStorage';
+                localStorage.setItem(testKey, 'test');
+                const result = localStorage.getItem(testKey) === 'test';
+                localStorage.removeItem(testKey);
+                
+                if (result) {
+                    debug.textContent = '✅ localStorage is available and working';
+                } else {
+                    debug.textContent = '❌ localStorage is available but not functioning correctly';
+                }
+            } catch (e) {
+                debug.textContent = `❌ localStorage error: ${e.message}`;
+            }
+        }
+        
+        // Get cart from localStorage
+        function getCart() {
+            try {
+                const cartData = localStorage.getItem(CART_KEY);
+                
+                if (cartData) {
+                    return JSON.parse(cartData);
+                }
+            } catch (e) {
+                console.error('Error getting cart:', e);
+            }
+            
+            // Return empty cart if no cart exists or there was an error
+            return { items: [], count: 0 };
+        }
+        
+        // Save cart to localStorage
+        function saveCart(cart) {
+            try {
+                localStorage.setItem(CART_KEY, JSON.stringify(cart));
+                return true;
+            } catch (e) {
+                console.error('Error saving cart:', e);
+                return false;
+            }
+        }
+        
+        // Add item to cart
+        function addToCart(product) {
+            try {
+                // Get current cart
+                const cart = getCart();
+                
+                // Add the item with a unique ID
+                const newItem = {
+                    ...product,
+                    uniqueId: `${product.id}_${Date.now()}`,
+                    quantity: 1,
+                    addedAt: new Date().toISOString()
+                };
+                
+                cart.items.push(newItem);
+                cart.count = cart.items.length;
+                
+                // Save cart
+                if (saveCart(cart)) {
+                    alert(`Added ${product.name} to cart!`);
+                    loadCart(); // Refresh the display
+                } else {
+                    alert('Failed to add item to cart');
+                }
+            } catch (e) {
+                console.error('Error adding to cart:', e);
+                alert(`Error: ${e.message}`);
+            }
+        }
+        
+        // Remove item from cart
+        function removeFromCart(uniqueId) {
+            try {
+                // Get current cart
+                const cart = getCart();
+                
+                // Remove the item
+                cart.items = cart.items.filter(item => item.uniqueId !== uniqueId);
+                cart.count = cart.items.length;
+                
+                // Save cart
+                saveCart(cart);
+                loadCart(); // Refresh the display
+            } catch (e) {
+                console.error('Error removing from cart:', e);
+                alert(`Error: ${e.message}`);
+            }
+        }
+        
+        // Clear cart
+        function clearCart() {
+            try {
+                // Save empty cart
+                saveCart({ items: [], count: 0 });
+                loadCart(); // Refresh the display
+                alert('Cart cleared');
+            } catch (e) {
+                console.error('Error clearing cart:', e);
+                alert(`Error: ${e.message}`);
+            }
+        }
+        
+        // Load and display cart
+        function loadCart() {
+            try {
+                const cartElement = document.getElementById('cart');
+                const cart = getCart();
+                
+                if (cart.items.length === 0) {
+                    cartElement.innerHTML = '<p>Your cart is empty</p>';
+                    return;
+                }
+                
+                let html = `<p>You have ${cart.count} item(s) in your cart</p>`;
+                
+                // Add items
+                cart.items.forEach(item => {
+                    html += `
+                        <div class="product">
+                            <div class="product-image">${item.image}</div>
+                            <div class="product-details">
+                                <h3>${item.name}</h3>
+                                <p>$${item.price.toFixed(2)}</p>
+                                <p>Added: ${new Date(item.addedAt).toLocaleString()}</p>
+                                <button onclick="removeFromCart('${item.uniqueId}')">Remove</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // Add total
+                const total = cart.items.reduce((sum, item) => sum + item.price, 0);
+                html += `<p><strong>Total: $${total.toFixed(2)}</strong></p>`;
+                
+                cartElement.innerHTML = html;
+            } catch (e) {
+                console.error('Error loading cart:', e);
+                document.getElementById('cart').innerHTML = `<p>Error loading cart: ${e.message}</p>`;
+            }
+        }
+        
+        // Show raw cart data for debugging
+        function showRawCart() {
+            try {
+                const debug = document.getElementById('debug');
+                const rawData = localStorage.getItem(CART_KEY);
+                
+                if (rawData) {
+                    const cart = JSON.parse(rawData);
+                    debug.textContent = JSON.stringify(cart, null, 2);
+                } else {
+                    debug.textContent = 'No cart data found in localStorage';
+                }
+            } catch (e) {
+                console.error('Error showing raw cart:', e);
+                document.getElementById('debug').textContent = `Error: ${e.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

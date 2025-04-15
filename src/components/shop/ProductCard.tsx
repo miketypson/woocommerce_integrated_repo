@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
 import { ShoppingCart, Star, ExternalLink, Code } from 'lucide-react';
+
+// No imports for cart utilities - direct implementation
 
 const ProductCard = ({ 
   product = { 
@@ -17,13 +18,59 @@ const ProductCard = ({
     isOpenSource: true,
     openSourceLink: 'https://grapheneos.org/',
     inStock: true
-  },
-  onAddToCart
+  }
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const { cart } = useCart();
+  // No longer using CartContext
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   
+  // Direct localStorage cart implementation (same as working HTML version)
+  // Constants
+  const CART_KEY = 'direct_cart_v1';
+  
+  // Get cart from localStorage
+  function getCart() {
+    try {
+      const cartData = localStorage.getItem(CART_KEY);
+      if (cartData) {
+        return JSON.parse(cartData);
+      }
+    } catch (e) {
+      console.error('Error getting cart:', e);
+    }
+    return { items: [], count: 0 };
+  }
+  
+  // Save cart to localStorage
+  function saveCart(cart) {
+    try {
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      // Also dispatch an event for the navbar
+      try {
+        const event = new CustomEvent('directCartUpdated', { detail: { cart } });
+        window.dispatchEvent(event);
+        document.dispatchEvent(event);
+      } catch (evtErr) {
+        console.error('Error dispatching event:', evtErr);
+      }
+      return true;
+    } catch (e) {
+      console.error('Error saving cart:', e);
+      return false;
+    }
+  }
+  
+  // Debug cart
+  function debugCart() {
+    const cart = getCart();
+    console.log('==== DIRECT CART DEBUG ====');
+    console.log('Cart:', cart);
+    console.log('Items:', cart.items);
+    console.log('Count:', cart.count);
+    return cart;
+  }
+  
+  // Handle Add to Cart
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -32,7 +79,39 @@ const ProductCard = ({
     
     setIsAddingToCart(true);
     try {
-      await onAddToCart();
+      console.log('ProductCard: Adding product directly to cart:', product);
+      
+      // Get current cart
+      const cart = getCart();
+      
+      // Create a normalized product
+      const newItem = {
+        id: product.id.toString(),
+        name: product.title || 'Product',
+        price: parseFloat(product.price?.toString() || '0'),
+        quantity: 1,
+        image: product.image || (product.images && product.images[0]?.src),
+        uniqueId: `${product.id}_${Date.now()}`,
+        addedAt: new Date().toISOString()
+      };
+      
+      // Add to cart
+      cart.items.push(newItem);
+      cart.count = cart.items.length;
+      
+      // Save cart
+      const success = saveCart(cart);
+      
+      if (success) {
+        // Debug the cart
+        debugCart();
+        console.log('Direct cart updated, count:', cart.count);
+        
+        // Show feedback
+        alert(`Added ${newItem.name} to your cart!`);
+      } else {
+        throw new Error('Failed to add product to cart');
+      }
     } catch (error) {
       console.error('Error adding to cart:', error);
     } finally {

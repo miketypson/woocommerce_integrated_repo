@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart LocalStorage Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            background-color: #0E294B;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1E5C97;
+        }
+        pre {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            overflow: auto;
+            white-space: pre-wrap;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .cart-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cart LocalStorage Test</h1>
+    
+    <div class="card">
+        <h2>LocalStorage Diagnostics</h2>
+        <div>
+            <button id="testLocalStorage">Test localStorage Availability</button>
+            <button id="clearLocalStorage">Clear localStorage</button>
+        </div>
+        <pre id="localStorageTest"></pre>
+    </div>
+    
+    <div class="card">
+        <h2>Current Cart Data</h2>
+        <button id="refreshCartData">Refresh Cart Data</button>
+        <button id="addTestProduct">Add Test Product</button>
+        <pre id="cartData">Loading...</pre>
+    </div>
+    
+    <div class="card">
+        <h2>Cart Items</h2>
+        <div id="cartItems">Loading...</div>
+    </div>
+    
+    <script>
+        // Test if localStorage is available
+        function testLocalStorage() {
+            const testOutput = document.getElementById('localStorageTest');
+            
+            try {
+                const testKey = '__test_localStorage__';
+                localStorage.setItem(testKey, testKey);
+                const result = localStorage.getItem(testKey) === testKey;
+                localStorage.removeItem(testKey);
+                
+                if (result) {
+                    testOutput.textContent = "✅ localStorage is available and working correctly";
+                } else {
+                    testOutput.textContent = "❌ localStorage available but not functioning correctly";
+                }
+                
+                // Show all existing localStorage keys
+                testOutput.textContent += "\n\nAll localStorage keys:";
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    testOutput.textContent += `\n- ${key}`;
+                }
+                
+            } catch (e) {
+                testOutput.textContent = `❌ localStorage ERROR: ${e.message}`;
+            }
+        }
+        
+        // Refresh cart data display
+        function refreshCartData() {
+            const cartDataElement = document.getElementById('cartData');
+            const cartItemsElement = document.getElementById('cartItems');
+            
+            try {
+                const rawCartData = localStorage.getItem('cart');
+                cartDataElement.textContent = rawCartData || 'No cart data found';
+                
+                if (rawCartData) {
+                    try {
+                        const cartData = JSON.parse(rawCartData);
+                        
+                        // Display cart items
+                        if (cartData.items && Array.isArray(cartData.items) && cartData.items.length > 0) {
+                            let itemsHTML = '';
+                            
+                            cartData.items.forEach((item, index) => {
+                                itemsHTML += `
+                                    <div class="cart-item">
+                                        <h3>${item.name || 'Unnamed product'}</h3>
+                                        <p>Price: $${parseFloat(item.price).toFixed(2)}</p>
+                                        <p>Quantity: ${item.quantity}</p>
+                                        <p>Item ID: ${item.id}</p>
+                                        <p>Unique ID: ${item.uniqueId || 'None'}</p>
+                                        <p>Key: ${item.key || 'None'}</p>
+                                    </div>
+                                `;
+                            });
+                            
+                            cartItemsElement.innerHTML = itemsHTML;
+                        } else {
+                            cartItemsElement.textContent = 'No items in cart';
+                        }
+                        
+                    } catch (e) {
+                        cartItemsElement.textContent = `Error parsing cart data: ${e.message}`;
+                    }
+                } else {
+                    cartItemsElement.textContent = 'No cart data found';
+                }
+                
+            } catch (e) {
+                cartDataElement.textContent = `Error accessing localStorage: ${e.message}`;
+                cartItemsElement.textContent = 'Error loading cart items';
+            }
+        }
+        
+        // Add a test product to cart
+        function addTestProduct() {
+            try {
+                // Create test product
+                const testProduct = {
+                    id: "test-product-" + Date.now(),
+                    name: "Test Product",
+                    price: 19.99,
+                    quantity: 1,
+                    images: [{src: "/placeholder-product.jpg"}],
+                    uniqueId: "test-" + Date.now(),
+                    key: "test-" + Date.now()
+                };
+                
+                // Get current cart or create new one
+                let cart;
+                const existingCart = localStorage.getItem('cart');
+                
+                if (existingCart) {
+                    cart = JSON.parse(existingCart);
+                    if (!Array.isArray(cart.items)) {
+                        cart.items = [];
+                    }
+                } else {
+                    cart = { items: [], totalItems: 0, total: 0 };
+                }
+                
+                // Add product to cart
+                cart.items.push(testProduct);
+                
+                // Update totals
+                cart.totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+                cart.total = parseFloat(
+                    cart.items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0).toFixed(2)
+                );
+                
+                // Save cart to localStorage
+                localStorage.setItem('cart', JSON.stringify(cart));
+                
+                // Refresh the display
+                refreshCartData();
+                
+                alert("Test product added to cart!");
+                
+            } catch (e) {
+                alert("Error adding test product: " + e.message);
+            }
+        }
+        
+        // Clear localStorage
+        function clearLocalStorage() {
+            try {
+                localStorage.clear();
+                alert("localStorage cleared successfully");
+                refreshCartData();
+                testLocalStorage();
+            } catch (e) {
+                alert("Error clearing localStorage: " + e.message);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('testLocalStorage').addEventListener('click', testLocalStorage);
+            document.getElementById('clearLocalStorage').addEventListener('click', clearLocalStorage);
+            document.getElementById('refreshCartData').addEventListener('click', refreshCartData);
+            document.getElementById('addTestProduct').addEventListener('click', addTestProduct);
+            
+            // Run tests on load
+            testLocalStorage();
+            refreshCartData();
+        });
+    </script>
+</body>
+</html>
