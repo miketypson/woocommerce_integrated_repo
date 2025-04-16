@@ -11,10 +11,12 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="col-span-1 md:col-span-1">
             <Link href="/" className="flex items-center mb-4">
-              <div className="h-10 w-10 bg-[#0E294B] rounded-full flex items-center justify-center mr-2">
-                <Shield className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">PrivacySecure</span>
+              <img 
+                src="/images/fortress-logo.svg" 
+                alt="Fortress Technologies Logo" 
+                className="h-10 w-auto mr-2" 
+              />
+              <span className="text-xl font-bold text-gray-900">Fortress Technologies</span>
             </Link>
             <p className="text-gray-600 text-sm mb-4">
               Privacy-focused products and services designed to protect your digital life. Open-source, transparent, and secure.
@@ -78,12 +80,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link href="/why-privacy" className="text-gray-600 hover:text-[#0E294B]">
-                  Why Privacy
-                </Link>
-              </li>
-              <li>
-                <Link href="/open-source" className="text-gray-600 hover:text-[#0E294B]">
-                  Open Source
+                  Commitment to Privacy
                 </Link>
               </li>
               <li>
@@ -129,7 +126,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center">
                 <Mail className="h-4 w-4 text-[#0E294B] mr-2" />
-                <span className="text-gray-600 text-sm">contact@privacysecure.com</span>
+                <span className="text-gray-600 text-sm">contact@fortresstechnologies.com</span>
               </div>
             </div>
           </div>
@@ -166,7 +163,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-gray-200 text-center">
           <p className="text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} PrivacySecure. All rights reserved.
+            &copy; {new Date().getFullYear()} Fortress Technologies. All rights reserved.
           </p>
         </div>
       </div>

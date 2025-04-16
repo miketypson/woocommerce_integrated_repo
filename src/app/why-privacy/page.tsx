@@ -2,7 +2,7 @@ import { Shield, Lock, ExternalLink, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: "Why Privacy Matters | Data Security in the Digital Age",
+  title: "Commitment to Privacy | Data Security in the Digital Age",
   description: "Learn why data privacy and security are more important than ever in today's digital landscape with emerging technologies and increasing online threats.",
 };
 
@@ -12,7 +12,7 @@ export default function WhyPrivacyPage() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Why Privacy Matters
+            Commitment to Privacy
           </h1>
           <p className="text-lg text-gray-600">
             In today's interconnected world, protecting your digital privacy has never been more important.

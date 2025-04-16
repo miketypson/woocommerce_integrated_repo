@@ -84,10 +84,12 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <div className="h-10 w-10 bg-[#0E294B] rounded-full flex items-center justify-center mr-2">
-                <Shield className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">PrivacySecure</span>
+              <img 
+                src="/images/fortress-logo.svg" 
+                alt="Fortress Technologies Logo" 
+                className="h-10 w-auto mr-2" 
+              />
+              <span className="text-xl font-bold text-gray-900">Fortress Technologies</span>
               <div className="ml-2 bg-[#0E294B] text-white text-xs px-1.5 py-0.5 rounded flex items-center">
                 <Code className="h-3 w-3 mr-0.5" />
                 <span>OSS</span>
@@ -125,11 +127,7 @@ const Navbar = () => {
             </Link>
             
             <Link href="/why-privacy" className="text-gray-700 hover:text-[#0E294B] font-medium">
-              Why Privacy
-            </Link>
-            
-            <Link href="/open-source" className="text-gray-700 hover:text-[#0E294B] font-medium">
-              Open Source
+              Commitment to Privacy
             </Link>
           </nav>
           
