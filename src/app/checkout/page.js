@@ -729,34 +729,36 @@ export default function CheckoutPage() {
         
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-            <h2 className="text-xl font-semibold mb-6">Order Summary</h2>
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h2>
             
-            <div className="divide-y divide-gray-200">
-              {cart.items.map((item) => (
-                <div key={item.key} className="py-4 flex">
-                  <div className="flex-shrink-0 w-16 h-16 bg-gray-100 rounded overflow-hidden">
-                    {item.images && item.images[0] ? (
-                      <img 
-                        src={item.images[0].src} 
-                        alt={item.name}
-                        className="w-full h-full object-contain p-2"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <CreditCard className="h-6 w-6 text-gray-400" />
-                      </div>
-                    )}
+            <div className="flow-root">
+              <div className="-my-4 divide-y divide-gray-200">
+                {cart.items && cart.items.map((item, index) => (
+                  <div key={item.uniqueId || item.id || `cart-item-${index}`} className="py-4 flex">
+                    <div className="flex-shrink-0 w-16 h-16 border border-gray-200 rounded-md overflow-hidden">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-center object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <CreditCard className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
+                      <p className="mt-1 text-sm text-gray-500">Qty: {item.quantity}</p>
+                    </div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {item.totals?.line_total}
+                    </div>
                   </div>
-                  <div className="ml-4 flex-1">
-                    <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
-                    <p className="mt-1 text-sm text-gray-500">Qty: {item.quantity}</p>
-                  </div>
-                  <div className="text-sm font-medium text-gray-900">
-                    {item.totals?.line_total}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
             
             <div className="border-t border-gray-200 pt-4 mt-4">
