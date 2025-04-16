@@ -184,8 +184,29 @@ export default function CheckoutPage() {
       }
       
       const orderResult = await response.json();
+      console.log('WooCommerce order created:', orderResult);
       setOrderDetails(orderResult);
       setOrderComplete(true);
+      
+      // Clear the cart after successful order
+      try {
+        // Create empty cart
+        const emptyCart = { items: [], count: 0 };
+        
+        // Save to localStorage
+        localStorage.setItem(CART_KEY, JSON.stringify(emptyCart));
+        
+        // Dispatch event to update cart components
+        const event = new CustomEvent('directCartUpdated', { 
+          detail: { cart: emptyCart } 
+        });
+        window.dispatchEvent(event);
+        document.dispatchEvent(event);
+        
+        console.log('Cart cleared after successful order');
+      } catch (clearError) {
+        console.error('Error clearing cart after order:', clearError);
+      }
       
       // If payment method is Stripe, redirect to payment URL
       if (formData.paymentMethod === 'stripe' && orderResult.paymentUrl) {
@@ -211,28 +232,7 @@ export default function CheckoutPage() {
     );
   }
 
-  // If cart is empty
-  if (!cart.items || cart.items.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-[#0E294B] mb-8">Checkout</h1>
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-6">
-          <div className="flex">
-            <AlertCircle className="h-5 w-5 mr-2" />
-            <p>Your cart is empty. Please add items to your cart before checking out.</p>
-          </div>
-        </div>
-        <Link href="/shop">
-          <button className="bg-[#0E294B] text-white px-6 py-3 rounded-md hover:bg-[#1E5C97] transition-colors inline-flex items-center">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Continue Shopping
-          </button>
-        </Link>
-      </div>
-    );
-  }
-
-  // If order is complete
+  // If order is complete - CHECK THIS CONDITION FIRST before the empty cart condition
   if (orderComplete) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -248,7 +248,7 @@ export default function CheckoutPage() {
           <div className="border-t border-b border-gray-200 py-4 my-6">
             <div className="flex justify-between mb-2">
               <span className="font-medium">Order Number:</span>
-              <span>{orderDetails?.orderId}</span>
+              <span>#{orderDetails?.id}</span>
             </div>
             <div className="flex justify-between mb-2">
               <span className="font-medium">Total Amount:</span>
@@ -272,7 +272,29 @@ export default function CheckoutPage() {
       </div>
     );
   }
+  
+  // If cart is empty and we're not in order complete state
+  if (!cart.items || cart.items.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-[#0E294B] mb-8">Checkout</h1>
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-6">
+          <div className="flex">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <p>Your cart is empty. Please add items to your cart before checking out.</p>
+          </div>
+        </div>
+        <Link href="/shop">
+          <button className="bg-[#0E294B] text-white px-6 py-3 rounded-md hover:bg-[#1E5C97] transition-colors inline-flex items-center">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Continue Shopping
+          </button>
+        </Link>
+      </div>
+    );
+  }
 
+  // Main checkout page if we have items and no completed order
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-[#0E294B] mb-8">Checkout</h1>
