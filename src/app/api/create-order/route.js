@@ -20,8 +20,12 @@ export async function POST(request) {
 
     // Transform cart items to the shape WooCommerce expects
     const lineItems = data.cart.items.map((item) => ({
-      product_id: item.id,   // must be the actual WooCommerce product ID
-      quantity: item.quantity,
+      product_id: parseInt(item.id),   // must be the actual WooCommerce product ID as number
+      quantity: item.quantity || 1,
+      // Include product name as a note if available
+      meta_data: item.name ? [
+        { key: 'product_name', value: item.name }
+      ] : undefined
     }));
 
     // Construct the WooCommerce order payload
@@ -34,6 +38,8 @@ export async function POST(request) {
       line_items: lineItems,
     };
 
+    console.log('Sending order to WooCommerce:', orderPayload);
+    
     // Send POST request to create the order in WooCommerce
     const res = await fetch(ordersEndpoint, {
       method: 'POST',
