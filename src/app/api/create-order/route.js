@@ -19,14 +19,59 @@ export async function POST(request) {
     // e.g., baseUrl + '/wp-json/wc/v3/orders'
 
     // Transform cart items to the shape WooCommerce expects
-    const lineItems = data.cart.items.map((item) => ({
-      product_id: parseInt(item.id),   // must be the actual WooCommerce product ID as number
-      quantity: item.quantity || 1,
-      // Include product name as a note if available
-      meta_data: item.name ? [
-        { key: 'product_name', value: item.name }
-      ] : undefined
-    }));
+    const lineItems = data.cart.items.map((item) => {
+      // Start with basic meta_data including product name
+      const metaData = [
+        { key: 'product_name', value: item.name || '' }
+      ];
+      
+      // Add any add-ons to meta_data if they exist
+      if (item.addons && Array.isArray(item.addons)) {
+        item.addons.forEach((addon, index) => {
+          if (addon.name && addon.value) {
+            metaData.push({
+              key: `addon_${index + 1}_name`,
+              value: addon.name
+            });
+            metaData.push({
+              key: `addon_${index + 1}_value`,
+              value: addon.value
+            });
+            if (addon.price) {
+              metaData.push({
+                key: `addon_${index + 1}_price`,
+                value: addon.price.toString()
+              });
+            }
+          }
+        });
+      }
+      
+      // Also check for addOnSelections property which might be used instead
+      if (item.addOnSelections && typeof item.addOnSelections === 'object') {
+        Object.entries(item.addOnSelections).forEach(([key, value], index) => {
+          if (value) { // Only include selected add-ons (value is truthy)
+            metaData.push({
+              key: `addon_${index + 1}_name`,
+              value: key
+            });
+            metaData.push({
+              key: `addon_${index + 1}_value`,
+              value: value === true ? 'Selected' : value.toString()
+            });
+          }
+        });
+      }
+      
+      // Log the meta_data for debugging
+      console.log(`Meta data for item ${item.id}:`, metaData);
+      
+      return {
+        product_id: parseInt(item.id),   // must be the actual WooCommerce product ID as number
+        quantity: item.quantity || 1,
+        meta_data: metaData
+      };
+    });
 
     // Construct the WooCommerce order payload
     const orderPayload = {
