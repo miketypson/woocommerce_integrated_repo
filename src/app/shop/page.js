@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// No longer using CartContext
 import ProductCard from '@/components/shop/ProductCard';
-// Using our simplified cart utility
-import { addToCart, getCart, debugCart } from '@/utils/simpleCart';
+import { addToCart } from '@/utils/simpleCart';
 
 export default function ShopPage() {
   const [products, setProducts] = useState([]);
@@ -116,125 +114,46 @@ export default function ShopPage() {
     );
   }
 
-  // Debug function to test direct cart add using our simpleCart utility
-  const testAddDirectToCart = () => {
-    // Create a very simple test product
-    const testProduct = {
-      id: "test-product-" + Date.now(),
-      name: "Test Product",
-      price: 19.99,
-      quantity: 1,
-      images: [{src: "/placeholder-product.jpg"}]
-    };
-    
-    try {
-      console.log('Adding test product to cart with simpleCart:', testProduct);
-      
-      // Add the test product using our simpleCart utility
-      const success = addToCart(testProduct, 1);
-      
-      // Debug the cart
-      debugCart();
-      
-      if (success) {
-        alert('Test product added directly to cart with simpleCart. Check the cart page now.');
-      } else {
-        alert('Failed to add test product to cart.');
-      }
-    } catch (e) {
-      console.error('TEST: Error adding to cart:', e);
-      alert('Error adding test product: ' + e.message);
-    }
-  };
+
   
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-[#0E294B] mb-8">Shop</h1>
-      
-      {/* Debug Button */}
-      <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
-        <h2 className="text-lg font-semibold mb-2">Debugging Tools</h2>
-        <div className="flex flex-wrap gap-2 mb-3">
-          <button 
-            onClick={testAddDirectToCart}
-            className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
-          >
-            Add Test Product Directly to Cart
-          </button>
-          
-          <button 
-            onClick={() => {
-              // Use simpleCart's clearCart instead
-              const { clearCart } = require('@/utils/simpleCart');
-              clearCart();
-              alert('Cart cleared using simpleCart');
-            }}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Clear Cart Storage
-          </button>
-          
-          <button 
-            onClick={() => {
-              // Use simpleCart's debugCart
-              const { debugCart } = require('@/utils/simpleCart');
-              const cart = debugCart();
-              alert(`Current cart has ${cart.items.length} items`);
-            }}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Show Cart Data
-          </button>
+    <div className="bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-gradient-to-r from-[#0E294B] to-[#1E5C97] rounded-lg p-6 mb-8 shadow-md">
+          <h1 className="text-3xl font-bold text-white mb-2">Shop</h1>
+          <p className="text-gray-100 opacity-90">Privacy-focused products built with open-source transparency</p>
         </div>
-        
-        <details className="text-sm mt-2">
-          <summary className="cursor-pointer font-medium">Cart Debug Info</summary>
-          <div className="mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-60">
-            <pre className="text-xs whitespace-pre-wrap break-all">
-              {(() => {
-                try {
-                  // Use simpleCart for consistency
-                  const cart = getCart();
-                  return JSON.stringify(cart, null, 2) || 'No cart data found';
-                } catch (e) {
-                  return `Error reading cart data: ${e.message}`;
-                }
-              })()}
-            </pre>
+        {products.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600">No products found.</p>
           </div>
-        </details>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={{
+                  // We pass in the shape that ProductCard expects with FULL data for cart
+                  id: product.id,
+                  title: product.name,
+                  category: product.categories?.[0]?.name || 'Product',
+                  description: product.short_description || product.description,
+                  price: parseFloat(product.price),
+                  image: product.images?.[0]?.src || '/placeholder-product.jpg',
+                  privacyRating: 5, // or any custom field
+                  isOpenSource: product.tags?.some(tag => tag.name === 'open-source') || false,
+                  openSourceLink: '',
+                  inStock: product.stock_status === 'instock',
+                  // Add raw WooCommerce data for complete cart integration
+                  images: product.images || [],
+                  raw: product // Include the complete WooCommerce product data
+                }}
+                // No longer pass the onAddToCart prop since ProductCard handles it directly
+              />
+            ))}
+          </div>
+        )}
       </div>
-      
-      {products.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600">No products found.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={{
-                // We pass in the shape that ProductCard expects with FULL data for cart
-                id: product.id,
-                title: product.name,
-                category: product.categories?.[0]?.name || 'Product',
-                description: product.short_description || product.description,
-                price: parseFloat(product.price),
-                image: product.images?.[0]?.src || '/placeholder-product.jpg',
-                privacyRating: 5, // or any custom field
-                isOpenSource: product.tags?.some(tag => tag.name === 'open-source') || false,
-                openSourceLink: '',
-                inStock: product.stock_status === 'instock',
-                // Add raw WooCommerce data for complete cart integration
-                images: product.images || [],
-                raw: product // Include the complete WooCommerce product data
-              }}
-              // No longer pass the onAddToCart prop since ProductCard handles it directly
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
