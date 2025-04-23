@@ -1,52 +1,51 @@
-/**
- * WooCommerce API utility functions
- *
- * This file contains utility functions for connecting to the WooCommerce REST API
- */
+// utils/woocommerce/api.js
+//--------------------------------------------------------------
+//  WooCommerce API utility functions
+//--------------------------------------------------------------
 
 /**
- * Get WooCommerce API configuration
+ * Reads WooCommerce credentials from environment variables and
+ * returns the base URL and Authorization header for REST requests.
  *
- * @returns {Object} WooCommerce API configuration
+ * Required ENV variables (define them in `.env.local` for local
+ * dev and in Amplify → Environment variables for production):
+ *
+ *   WOO_BASE_URL       e.g. https://store.fortresstechnologies.org
+ *   WOO_CONSUMER_KEY   ck_**********************
+ *   WOO_CONSUMER_SECRET cs_**********************
  */
 export const getWooCommerceApi = () => {
-  // Purely use environment variables—no fallback strings.
-  // If they are missing, let's at least console.error (or throw an error).
-  const baseUrl = process.env.WOO_BASE_URL;
-  const consumerKey = process.env.WOO_CONSUMER_KEY;
-  const consumerSecret = process.env.WOO_CONSUMER_SECRET;
+  const baseUrl       = process.env.WOO_BASE_URL;       // e.g. https://example.com
+  const consumerKey   = process.env.WOO_CONSUMER_KEY;   // ck_****
+  const consumerSecret= process.env.WOO_CONSUMER_SECRET;// cs_****
 
+  // Fail fast if any variable is missing
   if (!baseUrl || !consumerKey || !consumerSecret) {
     console.error('WooCommerce ENV variables are missing:', {
       baseUrl,
-      consumerKeyExists: !!consumerKey,
+      consumerKeyExists   : !!consumerKey,
       consumerSecretExists: !!consumerSecret,
     });
-    throw new Error('Missing WooCommerce ENV variables. Check .env.local or Amplify environment settings.');
+    throw new Error(
+      'Missing WooCommerce ENV variables. ️Check `.env.local` (local) or Amplify Environment variables (prod).'
+    );
   }
 
-  // Create Basic Auth header from consumer key and secret
-  const authHeader = 'Basic ' + Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
+  // Basic-Auth header required by WooCommerce REST API
+  const authHeader =
+    'Basic ' + Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
 
-  console.log('WooCommerce API Config:', {
-    baseUrl,
-    hasKey: !!consumerKey,
-    hasSecret: !!consumerSecret,
-  });
-
-  return {
-    baseUrl,
-    authHeader,
-  };
+  return { baseUrl, authHeader };
 };
 
 /**
- * Get WooCommerce API endpoints
+ * Convenient constants for WooCommerce REST endpoints
+ * (all paths are relative to your WordPress base URL)
  */
 export const WOO_ENDPOINTS = {
-  PRODUCTS: '/wp-json/wc/v3/products',
-  PRODUCT: (id) => `/wp-json/wc/v3/products/${id}`,
-  ORDERS: '/wp-json/wc/v3/orders',
-  ORDER: (id) => `/wp-json/wc/v3/orders/${id}`,
+  PRODUCTS        : '/wp-json/wc/v3/products',
+  PRODUCT         : (id) => `/wp-json/wc/v3/products/${id}`,
+  ORDERS          : '/wp-json/wc/v3/orders',
+  ORDER           : (id) => `/wp-json/wc/v3/orders/${id}`,
   PAYMENT_GATEWAYS: '/wp-json/wc/v3/payment_gateways',
 };
