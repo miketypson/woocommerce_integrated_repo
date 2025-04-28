@@ -1,19 +1,16 @@
-# amplify.yml  (root of repo)
 version: 1
 frontend:
   phases:
     preBuild:
       commands:
-        # If you pin Node in .nvmrc you can drop the nvm line
         - nvm use 18
-        - yarn install --frozen-lockfile
-        # 👇 write the env vars that Amplify injects into a file
+        - npm ci                  # ← swap yarn install for npm
         - echo "WOO_BASE_URL=$WOO_BASE_URL"           >> .env.production
         - echo "WOO_CONSUMER_KEY=$WOO_CONSUMER_KEY"   >> .env.production
         - echo "WOO_CONSUMER_SECRET=$WOO_CONSUMER_SECRET" >> .env.production
     build:
       commands:
-        - yarn build
+        - npm run build           # or: yarn build, but stay consistent
   artifacts:
     baseDirectory: .next
     files:
