@@ -289,42 +289,23 @@ export default function WhyPrivacyPage() {
             Take Back Control of Your Digital Life
           </h2>
           <p>
-            Fortress products are engineered so you don’t have to trade usability for privacy.
-            The following categories give you immediate, tangible protection.
+            Fortress products are engineered so you don't have to trade usability for privacy.
+            Visit our shop to explore our privacy-focused product range.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
-            {[
-              {
-                href: '/shop/secure-phones',
-                title: 'Secure Phones',
-                desc:
-                  'GrapheneOS‑powered Pixel devices with verifiable builds, hardened memory ' +
-                  'allocator, and zero Google Play Services.',
-              },
-              {
-                href: '/shop/faraday-products',
-                title: 'Faraday Products',
-                desc:
-                  'Signal‑blocking sleeves and bags to render wireless exfiltration—' +
-                  'WiFi, 5G, Bluetooth—physically impossible.',
-              },
-              {
-                href: '/shop/connectivity',
-                title: 'Private Connectivity',
-                desc:
-                  'Pre‑paid data SIMs and eSIMs that require no ID, keeping your movements ' +
-                  'decoupled from traditional telco logs.',
-              },
-            ].map((card) => (
-              <Link key={card.title} href={card.href} className="group">
-                <div className="bg-white border border-gray-200 rounded-lg p-6 h-full hover:border-[#0E294B] hover:shadow-md transition-all">
-                  <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-[#0E294B]">
-                    {card.title}
-                  </h3>
-                  <p className="text-gray-600">{card.desc}</p>
-                </div>
-              </Link>
-            ))}
+          <div className="flex justify-center my-8">
+            <Link href="/shop" className="group">
+              <div className="bg-white border border-gray-200 rounded-lg p-8 hover:border-[#0E294B] hover:shadow-md transition-all text-center max-w-xl w-full">
+                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#0E294B]">
+                  Shop Our Privacy Products
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Explore our complete range of privacy-focused products designed to protect your digital life.
+                </p>
+                <button className="inline-block bg-[#0E294B] text-white px-6 py-3 rounded-md hover:bg-[#1E5C97] transition-colors duration-300">
+                  Browse Products
+                </button>
+              </div>
+            </Link>
           </div>
 
           {/* ───────── Privacy is a Fundamental Right ───────── */}

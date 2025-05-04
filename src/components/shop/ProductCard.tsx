@@ -4,21 +4,41 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Star, ExternalLink, Code } from 'lucide-react';
 
-// No imports for cart utilities - direct implementation
+// Define TypeScript interfaces for our data
+interface ProductProps {
+  id: string | number;
+  title: string;
+  category: string;
+  description: string;
+  price: number;
+  image: string;
+  privacyRating: number;
+  isOpenSource: boolean;
+  openSourceLink: string;
+  inStock: boolean;
+  images?: Array<{src: string}>;
+  raw?: any;
+}
+
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  uniqueId: string;
+  addedAt: string;
+}
+
+interface Cart {
+  items: CartItem[];
+  count: number;
+}
 
 const ProductCard = ({ 
-  product = { 
-    id: 'sample-product',
-    title: 'Pixel 7a with GrapheneOS',
-    category: 'Secure Phone',
-    description: 'Privacy-focused smartphone with enhanced security features',
-    price: 699.99,
-    image: '/placeholder-product.jpg',
-    privacyRating: 5,
-    isOpenSource: true,
-    openSourceLink: 'https://grapheneos.org/',
-    inStock: true
-  }
+  product
+}: {
+  product: ProductProps
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   // No longer using CartContext
@@ -29,7 +49,7 @@ const ProductCard = ({
   const CART_KEY = 'direct_cart_v1';
   
   // Get cart from localStorage
-  function getCart() {
+  function getCart(): Cart {
     try {
       const cartData = localStorage.getItem(CART_KEY);
       if (cartData) {
@@ -42,7 +62,7 @@ const ProductCard = ({
   }
   
   // Save cart to localStorage
-  function saveCart(cart) {
+  function saveCart(cart: Cart): boolean {
     try {
       localStorage.setItem(CART_KEY, JSON.stringify(cart));
       // Also dispatch an event for the navbar
@@ -63,7 +83,7 @@ const ProductCard = ({
 
   
   // Handle Add to Cart
-  const handleAddToCart = async (e) => {
+  const handleAddToCart = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -77,12 +97,12 @@ const ProductCard = ({
       const cart = getCart();
       
       // Create a normalized product
-      const newItem = {
+      const newItem: CartItem = {
         id: product.id.toString(),
         name: product.title || 'Product',
         price: parseFloat(product.price?.toString() || '0'),
         quantity: 1,
-        image: product.image || (product.images && product.images[0]?.src),
+        image: product.image || (product.images && product.images[0]?.src) || '',
         uniqueId: `${product.id}_${Date.now()}`,
         addedAt: new Date().toISOString()
       };
@@ -154,8 +174,7 @@ const ProductCard = ({
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-100">
               <div className="text-gray-400 text-center">
-                <Shield className="h-16 w-16 mx-auto mb-2" />
-                <span className="text-sm">Product Image Placeholder</span>
+                <span className="text-sm">No Image Available</span>
               </div>
             </div>
           )}
@@ -235,23 +254,3 @@ const ProductCard = ({
 };
 
 export default ProductCard;
-
-// Shield icon component
-function Shield(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}

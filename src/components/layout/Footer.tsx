@@ -7,9 +7,9 @@ const Footer = () => {
   return (
     <footer className="bg-gray-50 border-t border-gray-200">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Logo and Description */}
-          <div className="col-span-1 md:col-span-1">
+          <div className="col-span-1">
             <Link href="/" className="flex items-center mb-4">
               <img 
                 src="/images/fortress-logo.svg" 
@@ -43,35 +43,6 @@ const Footer = () => {
             </div>
           </div>
           
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
-              Products
-            </h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/shop/product/pixel-7a-grapheneos" className="text-gray-600 hover:text-[#0E294B]">
-                  Secure Phones
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop/product/premium-faraday-bag" className="text-gray-600 hover:text-[#0E294B]">
-                  Faraday Bags
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop/product/prepaid-sim-150" className="text-gray-600 hover:text-[#0E294B]">
-                  Prepaid Data SIMs
-                </Link>
-              </li>
-              <li>
-                <Link href="/apps" className="text-gray-600 hover:text-[#0E294B]">
-                  Privacy Apps
-                </Link>
-              </li>
-            </ul>
-          </div>
-          
           {/* Company */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
@@ -91,6 +62,11 @@ const Footer = () => {
               <li>
                 <Link href="/contact" className="text-gray-600 hover:text-[#0E294B]">
                   Contact
+                </Link>
+              </li>
+              <li>
+                <Link href="/faq" className="text-gray-600 hover:text-[#0E294B]">
+                  FAQs
                 </Link>
               </li>
             </ul>

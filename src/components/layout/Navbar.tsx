@@ -2,21 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, ShoppingCart, Search, ChevronDown, Shield, Code } from 'lucide-react';
+import { Menu, X, ShoppingCart, Search, Shield, Code } from 'lucide-react';
 
 // No imports - direct implementation
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
-  };
-  
-  const toggleShopDropdown = () => {
-    setIsShopDropdownOpen(!isShopDropdownOpen);
   };
   
   // Direct cart implementation
@@ -99,24 +94,9 @@ const Navbar = () => {
           
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            <div className="relative group">
-              <button 
-                className="flex items-center text-gray-700 hover:text-[#0E294B] font-medium"
-                onClick={toggleShopDropdown}
-              >
-                Shop
-                <ChevronDown className="ml-1 h-4 w-4" />
-              </button>
-              
-              {/* Shop Dropdown */}
-              <div className={`absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 transition-all duration-200 ${isShopDropdownOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
-                <div className="py-1" role="menu" aria-orientation="vertical">
-                  <Link href="/shop" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    All Products
-                  </Link>
-                </div>
-              </div>
-            </div>
+            <Link href="/shop" className="text-gray-700 hover:text-[#0E294B] font-medium">
+              Shop
+            </Link>
             
             <Link href="/apps" className="text-gray-700 hover:text-[#0E294B] font-medium">
               Apps
@@ -128,6 +108,10 @@ const Navbar = () => {
             
             <Link href="/why-privacy" className="text-gray-700 hover:text-[#0E294B] font-medium">
               Commitment to Privacy
+            </Link>
+
+            <Link href="/faq" className="text-gray-700 hover:text-[#0E294B] font-medium">
+              FAQs
             </Link>
           </nav>
           
@@ -166,30 +150,9 @@ const Navbar = () => {
       {/* Mobile Menu */}
       <div className={`md:hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200">
-          <div className="block">
-            <button 
-              onClick={toggleShopDropdown}
-              className="w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md flex justify-between items-center"
-            >
-              Shop
-              <ChevronDown className={`h-4 w-4 transition-transform ${isShopDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
-            
-            <div className={`pl-4 space-y-1 transition-all duration-200 ${isShopDropdownOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-              <Link href="/shop/product/pixel-7a-grapheneos" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
-                Secure Phones
-              </Link>
-              <Link href="/shop/product/premium-faraday-bag" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
-                Faraday Bags
-              </Link>
-              <Link href="/shop/product/prepaid-sim-150" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
-                Prepaid Data SIMs
-              </Link>
-              <Link href="/shop" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
-                All Products
-              </Link>
-            </div>
-          </div>
+          <Link href="/shop" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
+            Shop
+          </Link>
           
           <Link href="/apps" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
             Apps
@@ -200,11 +163,15 @@ const Navbar = () => {
           </Link>
           
           <Link href="/why-privacy" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
-            Why Privacy
+            Commitment to Privacy
           </Link>
           
           <Link href="/open-source" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
             Open Source
+          </Link>
+
+          <Link href="/faq" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
+            FAQs
           </Link>
         </div>
         

@@ -139,7 +139,7 @@ export default function ShopPage() {
                   category: product.categories?.[0]?.name || 'Product',
                   description: product.short_description || product.description,
                   price: parseFloat(product.price),
-                  image: product.images?.[0]?.src || '/placeholder-product.jpg',
+                  image: product.images?.[0]?.src || '', // Remove placeholder image fallback
                   privacyRating: 5, // or any custom field
                   isOpenSource: product.tags?.some(tag => tag.name === 'open-source') || false,
                   openSourceLink: '',
