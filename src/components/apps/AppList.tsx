@@ -15,6 +15,7 @@ type App = {
   vulnerabilities: string;
   isRecommended: boolean;
   icon?: string;
+  website?: string;
 };
 
 type AppCategory = {
@@ -45,6 +46,7 @@ const appCategories: AppCategory[] = [
         privacyRating: 5,
         vulnerabilities: 'Limited app selection compared to commercial stores.',
         isRecommended: true,
+        website: 'https://f-droid.org/',
       },
       {
         id: 'neo-store',
@@ -80,6 +82,7 @@ const appCategories: AppCategory[] = [
         privacyRating: 5,
         vulnerabilities: 'Limited free storage tier.',
         isRecommended: true,
+        website: 'https://proton.me/drive',
       },
     ]
   },
@@ -95,6 +98,7 @@ const appCategories: AppCategory[] = [
         privacyRating: 5,
         vulnerabilities: 'Phone number required for registration.',
         isRecommended: true,
+        website: 'https://signal.org/',
       },
       {
         id: 'threema-libre',
@@ -105,6 +109,7 @@ const appCategories: AppCategory[] = [
         privacyRating: 5,
         vulnerabilities: 'Smaller user base than major messaging apps.',
         isRecommended: true,
+        website: 'https://threema.ch/',
       },
       {
         id: 'telegram',
@@ -180,6 +185,7 @@ const appCategories: AppCategory[] = [
         privacyRating: 5,
         vulnerabilities: 'Smaller server network than some competitors.',
         isRecommended: true,
+        website: 'https://mullvad.net/',
       },
       {
         id: 'protonvpn',
@@ -205,6 +211,7 @@ const appCategories: AppCategory[] = [
         privacyRating: 5,
         vulnerabilities: 'Email subject lines not encrypted. Limited integration with other providers.',
         isRecommended: true,
+        website: 'https://proton.me/mail',
       },
       {
         id: 'k9-mail',
@@ -305,6 +312,7 @@ const appCategories: AppCategory[] = [
         privacyRating: 5,
         vulnerabilities: 'Slower browsing experience due to routing.',
         isRecommended: true,
+        website: 'https://www.torproject.org/',
       },
       {
         id: 'mullvad-browser',
@@ -485,6 +493,7 @@ const appCategories: AppCategory[] = [
         privacyRating: 5,
         vulnerabilities: 'Advanced features require paid subscription.',
         isRecommended: true,
+        website: 'https://standardnotes.com/',
       },
     ]
   },
@@ -525,6 +534,7 @@ const appCategories: AppCategory[] = [
         privacyRating: 5,
         vulnerabilities: 'Some advanced features require paid subscription.',
         isRecommended: true,
+        website: 'https://bitwarden.com/',
       },
     ]
   },
@@ -570,6 +580,7 @@ const appCategories: AppCategory[] = [
         privacyRating: 5,
         vulnerabilities: 'Can break when YouTube changes their API.',
         isRecommended: true,
+        website: 'https://newpipe.net/',
       },
       {
         id: 'libretube',
@@ -795,10 +806,27 @@ const AppCard = ({ app }) => {
               </ul>
             </div>
             
-            <div>
+            <div className="mb-3">
               <h4 className="text-sm font-medium text-gray-900 mb-2">Potential Vulnerabilities</h4>
               <p className="text-sm text-gray-600">{app.vulnerabilities}</p>
             </div>
+            
+            {app.website && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-900 mb-2">Official Website</h4>
+                <a 
+                  href={app.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  Visit developer website
+                </a>
+              </div>
+            )}
           </div>
         )}
       </div>
