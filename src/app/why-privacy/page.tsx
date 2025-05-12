@@ -284,6 +284,103 @@ export default function WhyPrivacyPage() {
             </p>
           </section>
 
+          {/* ───────────────────── Our Privacy Practices ─────────────────── */}
+          <section className="my-12">
+            <h2 className="text-2xl font-bold text-[#0E294B] mb-4">
+              Our Privacy Practices: Actions, Not Just Words
+            </h2>
+            <p className="mb-6">
+              At Fortress Technologies, our commitment to privacy goes beyond rhetoric—it's built into every interaction you have with our products and services. Here's exactly how we protect your data:
+            </p>
+            
+            <div className="space-y-8">
+              {/* Client-side data section */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-bold text-[#0E294B] mb-3 flex items-center">
+                  <Shield className="h-5 w-5 mr-2 text-[#1E5C97]" />
+                  Client‑side data, client‑side control
+                </h3>
+                <p className="text-gray-700 mb-3">
+                  All session information—shopping cart, preferences, checkout progress—is stored exclusively in your web browser's local storage.
+                </p>
+                <p className="text-gray-700 mb-3">
+                  Nothing is transmitted to analytics networks or retained on our servers. When you clear your browser data, every trace of that session disappears.
+                </p>
+                <div className="bg-gray-50 p-4 rounded border border-gray-100 text-sm text-gray-600">
+                  <div className="font-medium text-[#0E294B] mb-1">Technical implementation:</div>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>No server-side session tracking</li>
+                    <li>Zero third-party cookies</li>
+                    <li>Complete absence of tracking pixels</li>
+                    <li>No cross-site request fingerprinting</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Order records section */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-bold text-[#0E294B] mb-3 flex items-center">
+                  <Lock className="h-5 w-5 mr-2 text-[#1E5C97]" />
+                  Order records kept lean—and only as long as legally required
+                </h3>
+                <p className="text-gray-700 mb-3">
+                  We retain a transaction record for statutory tax and bookkeeping purposes, but we remove personal identifiers the moment they are no longer needed:
+                </p>
+                <ul className="space-y-3 text-gray-700 mb-4">
+                  <li className="pl-5 relative before:content-[''] before:h-2 before:w-2 before:bg-[#1E5C97] before:rounded-full before:absolute before:left-0 before:top-[0.5em]">
+                    When an order reaches Completed or Refunded status, an automated nightly routine purges names, addresses, telephone numbers and email addresses after 30 days.
+                  </li>
+                  <li className="pl-5 relative before:content-[''] before:h-2 before:w-2 before:bg-[#1E5C97] before:rounded-full before:absolute before:left-0 before:top-[0.5em]">
+                    A parallel process stores a redacted summary—order number, item SKUs, quantities, totals—in an encrypted, access‑controlled archive. These summaries satisfy audit requirements while remaining impossible to link back to an individual customer.
+                  </li>
+                </ul>
+                <div className="bg-gray-50 p-4 rounded border border-gray-100 text-sm text-gray-600">
+                  <div className="font-medium text-[#0E294B] mb-1">Verified by:</div>
+                  <p>Independent auditors annually validate our data handling practices against SOC 2 requirements and GDPR Article 17 ("right to be forgotten") compliance.</p>
+                </div>
+              </div>
+
+              {/* Hardware trust section */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-bold text-[#0E294B] mb-3 flex items-center">
+                  <LucideCode className="h-5 w-5 mr-2 text-[#1E5C97]" />
+                  Hardware you can trust—by design and by inspection
+                </h3>
+                <p className="text-gray-700 mb-4">
+                  Our devices are engineered for uncompromising privacy:
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-bold text-[#0E294B] mb-2">Security‑centric architecture</h4>
+                    <p className="text-gray-600 text-sm">
+                      Verified boot chain, hardware‑backed encryption, and tamper‑evident construction form a defence‑in‑depth foundation.
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-bold text-[#0E294B] mb-2">Fully open‑source software stack</h4>
+                    <p className="text-gray-600 text-sm">
+                      Every component—from bootloader to userland—can be audited on our public repositories. Reproducible‑build instructions and published hash values allow anyone to verify that the factory image matches the source code.
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-bold text-[#0E294B] mb-2">Zero telemetry, zero back‑doors</h4>
+                    <p className="text-gray-600 text-sm">
+                      No background data collection, no vendor cloud dependencies, and no hidden debug ports. Access to user data requires physical possession of the device and the correct credentials; cryptographic protections have never been bypassed in operational use.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-[#D0E4F5]/60 p-4 rounded-lg text-sm text-gray-700">
+                  <p className="font-medium">Why this matters:</p> 
+                  <p>When we say "security by design," we mean every decision—from hardware component selection to UI layout—is evaluated for privacy impact. Our products aren't consumer devices with privacy features bolted on; they're privacy tools designed to be usable.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* ───────── Taking Control Cards (unchanged) ───────── */}
           <h2 className="text-2xl font-bold text-[#0E294B] mb-4">
             Take Back Control of Your Digital Life
