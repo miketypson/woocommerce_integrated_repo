@@ -1,9 +1,28 @@
 "use client";
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { ExternalLink, Mail, Phone, Shield } from 'lucide-react';
 
 const Footer = () => {
+  const [products, setProducts] = useState([]);
+  
+  // Fetch products for the footer
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products', { cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data);
+        }
+      } catch (error) {
+        console.error('Error fetching products for footer:', error);
+      }
+    };
+    
+    fetchProducts();
+  }, []);
   return (
     <footer className="bg-gray-50 border-t border-gray-200">
       <div className="container mx-auto px-4 py-12">
@@ -43,30 +62,33 @@ const Footer = () => {
             </div>
           </div>
           
-          {/* Quick Links */}
+          {/* Products Links - Dynamically Generated */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
               Products
             </h3>
             <ul className="space-y-2">
+              {products.length > 0 ? (
+                products.slice(0, 4).map((product) => (
+                  <li key={product.id}>
+                    <Link 
+                      href={`/shop/products/${product.id}`} 
+                      className="text-gray-600 hover:text-[#0E294B]"
+                    >
+                      {product.name}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <li>
+                  <Link href="/shop" className="text-gray-600 hover:text-[#0E294B]">
+                    Shop All Products
+                  </Link>
+                </li>
+              )}
               <li>
-                <Link href="/shop/product/pixel-7a-grapheneos" className="text-gray-600 hover:text-[#0E294B]">
-                  Secure Phones
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop/product/premium-faraday-bag" className="text-gray-600 hover:text-[#0E294B]">
-                  Faraday Bags
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop/product/prepaid-sim-150" className="text-gray-600 hover:text-[#0E294B]">
-                  Prepaid Data SIMs
-                </Link>
-              </li>
-              <li>
-                <Link href="/apps" className="text-gray-600 hover:text-[#0E294B]">
-                  Privacy Apps
+                <Link href="/shop" className="text-gray-600 hover:text-[#0E294B] font-medium">
+                  View All Products
                 </Link>
               </li>
             </ul>
@@ -89,8 +111,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-gray-600 hover:text-[#0E294B]">
-                  Contact
+                <Link href="/contact-us" className="text-gray-600 hover:text-[#0E294B]">
+                  Contact Us
                 </Link>
               </li>
             </ul>

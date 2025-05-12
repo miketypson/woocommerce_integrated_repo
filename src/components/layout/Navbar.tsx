@@ -122,12 +122,16 @@ const Navbar = () => {
               Apps
             </Link>
             
-            <Link href="https://grapheneos.org/" target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-[#0E294B] font-medium">
-              GrapheneOS
+            <Link href="/faq" className="text-gray-700 hover:text-[#0E294B] font-medium">
+              FAQs
             </Link>
             
             <Link href="/why-privacy" className="text-gray-700 hover:text-[#0E294B] font-medium">
               Commitment to Privacy
+            </Link>
+            
+            <Link href="/contact-us" className="text-gray-700 hover:text-[#0E294B] font-medium">
+              Contact Us
             </Link>
           </nav>
           
@@ -195,12 +199,16 @@ const Navbar = () => {
             Apps
           </Link>
           
-          <Link href="https://grapheneos.org/" target="_blank" rel="noopener noreferrer" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
-            GrapheneOS
+          <Link href="/faq" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
+            FAQs
           </Link>
           
           <Link href="/why-privacy" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
             Why Privacy
+          </Link>
+          
+          <Link href="/contact-us" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
+            Contact Us
           </Link>
           
           <Link href="/open-source" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-[#0E294B] hover:bg-gray-50 rounded-md">
